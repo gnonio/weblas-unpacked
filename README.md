@@ -10,7 +10,7 @@ Using the original packed format there is some overhead due to packing and unpac
 
 * directly uploads data avoiding padding via the webgl LUMINANCE format
 * simplifies glsl logic and computations of intermediate results given the nearly 1 to 1 data mapping
-* prevents glsl added computations when float32-encoding result values ( original packed format inherits this )
+* prevents glsl added computations when float32-encoding result values ( original packed format inherits this facility )
 
 #### Some compromises:
 
@@ -37,23 +37,40 @@ weblas-unpacked depends on weblas, include both `weblas.js` and `weblas-unpacked
 
 ```javascript
 // create unpacked Tensor containers for interacting directly with GPU memory
-var t0 = weblas.unpacked.Tensor([M0, N0], data0)
+var cpu_data0 = [0,1,2,
+				 3,4,5]
+				 
+var M0 = 3, N0 = 2
+var t0 = new weblas.unpacked.Tensor( [M0, N0], cpu_data0 )
 
 // unpacked Tensor does not require transposing
 // it does assume you are providing matrices which can be multiplied together
-var t1 = weblas.unpacked.Tensor([M1, N1], data1) // (ie. N0 == M1)
+var cpu_data1 = [7,6,
+				 5,4,
+				 3,2,
+				 1,0]
+				 
+var M1 = 2, N1 = 4
+var t1 = new weblas.unpacked.Tensor( [M1, N1], cpu_data1 ) // (ie. N0 == M1)
 
 // optional matrix to add to result is mapped directly
-var t2 = weblas.unpacked.Tensor([M0, N1], data2)
+var cpu_data2 = [0.0,0.1,0.2,
+				 0.3,0.4,0.5,
+				 0.6,0.7,0.8,
+				 0.9,1.0,1.1]
+				 
+var t2 = new weblas.unpacked.Tensor( [M0, N1], cpu_data2 )
 
-//var alpha = 1.0; (not yet implemented)
+//var alpha = 1.0; (soon)
 //var beta = 0.5;
 
 // execute the computation
-var t3 = weblas.unpacked.blas.sgemm(t0, t1, t2)
+var t3 = weblas.unpacked.blas.sgemm( t0, t1, t2 )
 
 // result is a Float32Array
 var result = t3.download( true ) // flag true to keep data in GPU for other computations
+var resultRGBA = t3.download( true, true ) // download full RGBA texture
+console.log( result, resultRGBA )
 ```
 
 
@@ -71,7 +88,7 @@ t4.pack()
 t4.unpack( 2 )
 
 // transpose and keep the original
-t4T = t4.transpose( true )
+var t4T = t4.transpose( true )
 
 // currently t4T is unpacked but transfer() is also available
 var resultT_unpacked = t4T.transfer() // console warning
@@ -84,7 +101,8 @@ var resultT_packed = t4T.transfer() // no warning
 
 /*
 	t4T is now in packed format
-	do some other weblas blas computations
+	do some other weblas computations
+	unavailable for unpacked format
 	...
 */
 

@@ -44,17 +44,19 @@ var	tensor_unpacked = require('./lib/tensor_unpacked')
 
 var	webgl_addin		= require('./lib/webgl_addin'),
 	tensor_addin	= require('./lib/tensor_addin')
-	
-var	blas_addon		= require('./lib/blas_addon')
+
+// Compute additions
+var	blas_addon		= require('./lib/blas_addon'),
+	nn_addon		= require('./lib/nn_addon')
 
 weblas.unpacked = {
-	'Tensor': tensor_unpacked,
-	'blas': blas_addon
+	'Tensor'	: tensor_unpacked,
+	'blas'		: blas_addon,
+	'nn'		: nn_addon
 }
 
 module.exports = {
-	'Tensor': tensor_unpacked,
-	'blas': blas_addon
+	'Tensor'	: tensor_unpacked,
+	'blas'		: blas_addon,
+	'nn'		: nn_addon
 }
-/*var	nn_addon		= require('./lib/nn_addon')
-	module.exports.nn = blas_addon*/
