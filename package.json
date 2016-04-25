@@ -1,0 +1,44 @@
+{
+  "name": "weblas-unpacked",
+  "version": "0.1.0",
+  "description": "weblas plugin - Unpacked RGBA data support",
+  "main": "weblas-unpacked.js",
+  "directories": {
+    "lib": "lib",
+    "dist": "dist"
+  },
+  "dependencies": {
+    "glslify": "^5.0.2"
+  },
+  "devDependencies": {
+  },
+  "scripts": {
+	"build": "browserify weblas-unpacked.js --s weblas_unpacked > ./dist/weblas-unpacked.js",
+	"buildlocal": "build.bat"
+  },
+  "browserify": {
+    "transform": 	["glslify", "browserify-shim" ]
+  },
+  "browserify-shim": {
+    "weblas": "global:weblas"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gnonio/weblas-unpacked.git"
+  },
+  "keywords": [
+    "gpu",
+    "blas",
+    "gemm",
+    "matrix",
+    "multiply",
+    "neural network",
+    "deep learning"
+  ],
+  "author": "Pedro Soares <pedrodavid.ms@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gnonio/weblas-unpacked/issues"
+  },
+  "homepage": "https://github.com/gnonio/weblas-unpacked"
+}
