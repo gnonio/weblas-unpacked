@@ -2,9 +2,7 @@
 
 Unpacked RGBA plugin for [weblas](https://github.com/waylonflinn/weblas). Check it out if you haven't.
 
-This plugin attempts to optimize in favour of more computations and fewer reads. Algorithms spending more cycles in GPU than CPU.
-
-Using the original packed format there is some overhead due to packing and unpacking the data at each CPU > GPU and GPU > CPU transfer.
+This plugin attempts to optimize in favour of more computations and fewer reads, algorithms spending more cycles in GPU than CPU. Using the original packed format there is some overhead due to packing and unpacking the data at each CPU > GPU and GPU > CPU transfer.
 
 #### Unpacked format optimizations:
 
@@ -14,15 +12,11 @@ Using the original packed format there is some overhead due to packing and unpac
 
 #### Some compromises:
 
-* GPU memory requirement is increased four times
-	can be recovered via the combination of multiple data textures of same shape into one
-	or combining up to four intermediate result variables side by side on each RGBA channel
+* GPU memory requirement is increased four times, can be recovered via the combination of multiple data textures of same shape into one	or combining up to four intermediate result variables side by side on each RGBA channel
 	
-* computations don't benefit from glsl vectorized operations
-	can be recovered via saves in padding/packing/float conversion computations
-	(ie. transposing is achieved by directly switiching texture coordinates dimensions)
+* computations don't benefit from glsl vectorized operations, can be recovered via saves in padding/packing/float conversion computations (ie. transposing is achieved by directly switiching texture coordinates dimensions)
 
-* currently only sgemm is implemented
+* currently only sgemm is implemented (expect more in future, but a full blas implementation is currently unlikely for the unpacked format)
 
 # Usage
 
@@ -37,27 +31,25 @@ weblas-unpacked depends on weblas, include both `weblas.js` and `weblas-unpacked
 
 ```javascript
 // create unpacked Tensor containers for interacting directly with GPU memory
-var cpu_data0 = [0,1,2,
-				 3,4,5]
+var cpu_data0 = [0,1,
+				 2,3,
+				 4,5]
 				 
 var M0 = 3, N0 = 2
 var t0 = new weblas.unpacked.Tensor( [M0, N0], cpu_data0 )
 
 // unpacked Tensor does not require transposing
 // it does assume you are providing matrices which can be multiplied together
-var cpu_data1 = [7,6,
-				 5,4,
-				 3,2,
-				 1,0]
+var cpu_data1 = [7,6,5,4,
+				 3,2,1,0]
 				 
 var M1 = 2, N1 = 4
 var t1 = new weblas.unpacked.Tensor( [M1, N1], cpu_data1 ) // (ie. N0 == M1)
 
 // optional matrix to add to result is mapped directly
-var cpu_data2 = [0.0,0.1,0.2,
-				 0.3,0.4,0.5,
-				 0.6,0.7,0.8,
-				 0.9,1.0,1.1]
+var cpu_data2 = [0.0,0.1,0.2,0.3,
+				 0.4,0.5,0.6,0.7,
+				 0.8,0.9,1.0,1.1]
 				 
 var t2 = new weblas.unpacked.Tensor( [M0, N1], cpu_data2 )
 
@@ -69,8 +61,10 @@ var t3 = weblas.unpacked.blas.sgemm( t0, t1, t2 )
 
 // result is a Float32Array
 var result = t3.download( true ) // flag true to keep data in GPU for other computations
+console.log( result )
 var resultRGBA = t3.download( true, true ) // download full RGBA texture
-console.log( result, resultRGBA )
+// values in float32array have a stride of 4
+console.log( resultRGBA )
 ```
 
 
@@ -91,13 +85,26 @@ t4.unpack( 2 )
 var t4T = t4.transpose( true )
 
 // currently t4T is unpacked but transfer() is also available
-var resultT_unpacked = t4T.transfer() // console warning
+var resultT_unpacked = t4T.transfer( true ) // console warning, falls back to download()
 
 // pack it
 t4T.pack()
-var resultT_packed = t4T.transfer() // no warning
+var resultT_packed = t4T.transfer( true ) // no warning
 
-// ( resultT_unpacked[i] == resultT_packed[i] ) = true
+// equivalence of results
+var deltas = []
+for ( var i = 0; i < resultT_packed.length; i++ ) {
+	var delta = Math.abs( resultT_unpacked[i] - resultT_packed[i] )
+	if ( delta > 1e-07 ) {
+		deltas.push( [i, delta] )
+	}
+}
+if ( deltas.length == 0 ) {
+	console.log( 'All result values are identical up to 1e-07 precision' )
+} else {
+	console.log( deltas.length + ' elements delta exceed expected precision:' )
+	console.log( deltas )
+}
 
 /*
 	t4T is now in packed format
@@ -105,5 +112,12 @@ var resultT_packed = t4T.transfer() // no warning
 	unavailable for unpacked format
 	...
 */
-
 ```
+
+### Implementation notes:
+
+keep in mind we are working with floating point values, there are differences in the way javascript and webgl deal with these (order of ops?)
+
+encoding float values is also prone to yield differences (hint: subnormals)
+
+texture lookup occurs via normalized coordinates, calculating these without care may easily result in lookup errors
