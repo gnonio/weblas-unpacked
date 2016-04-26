@@ -1,4 +1,4 @@
-![logo](weblas.png)
+![logo](weblas-unpacked.png)
 
 Unpacked RGBA plugin for [weblas](https://github.com/waylonflinn/weblas). Check it out if you haven't.
 
