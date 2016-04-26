@@ -4,15 +4,20 @@ precision highp int;
 
 varying vec2      	outTex;			// texture coords of row/column to calculate
 
-uniform int			K;				// number of cols
-uniform float		K_step;			// number of rows
-uniform float		K_hstep;		// number of rows
+uniform int			K;				// 
+uniform float		K_step;			// 
+uniform float		K_hstep;		// 
+
+
+uniform float		alpha;			// 
 
 uniform sampler2D 	A;				// texture with data A
 uniform int			A_channel;		// channel to read data from
 
 uniform sampler2D 	B;				// texture with data B
 uniform int			B_channel;		// channel to read data from
+
+uniform float		beta;			// 
 
 uniform int			CSUM;			// channel to read data from
 uniform sampler2D 	C;				// texture with data B
@@ -32,7 +37,7 @@ void main( void ) {
 	float col_t = outTex.x;
 	float c = 0.0;
 	if ( CSUM == 1 ) {
-		c = get_channel_value( C, C_channel, outTex );
+		c = beta * get_channel_value( C, C_channel, outTex );
 	}
 	
 	float hstep = K_hstep;// position for shared dimension on source textures
@@ -49,5 +54,5 @@ void main( void ) {
 		hstep += K_step;
 	}
 
-	gl_FragColor = set_channel_value( write_channel, sum + c );
+	gl_FragColor = set_channel_value( write_channel, alpha * sum + c );
 }

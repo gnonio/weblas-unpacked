@@ -35,8 +35,9 @@ var cpu_data0 = [0,1,
 				 2,3,
 				 4,5]
 				 
-var M0 = 3, N0 = 2
-var t0 = new weblas.unpacked.Tensor( [M0, N0], cpu_data0 )
+var M0 = 3 /* rows */, N0 = 2 /* cols */
+
+var t0 = new weblas.unpacked.Tensor( [M0, N0], cpu_data0 ) // same creation pattern
 
 // unpacked Tensor does not require transposing
 // it does assume you are providing matrices which can be multiplied together
@@ -47,24 +48,32 @@ var M1 = 2, N1 = 4
 var t1 = new weblas.unpacked.Tensor( [M1, N1], cpu_data1 ) // (ie. N0 == M1)
 
 // optional matrix to add to result is mapped directly
-var cpu_data2 = [0.0,0.1,0.2,0.3,
-				 0.4,0.5,0.6,0.7,
-				 0.8,0.9,1.0,1.1]
+var cpu_data2 = [100,100,100,100,
+				 100,100,100,100,
+				 100,100,100,100]
 				 
 var t2 = new weblas.unpacked.Tensor( [M0, N1], cpu_data2 )
-
-//var alpha = 1.0; (soon)
-//var beta = 0.5;
 
 // execute the computation
 var t3 = weblas.unpacked.blas.sgemm( t0, t1, t2 )
 
-// result is a Float32Array
-var result = t3.download( true ) // flag true to keep data in GPU for other computations
+// get the results to CPU
+var result = t3.download() // no flag deletes GPU memory akin to transfer()
+console.log( result ) // result is a Float32Array
+
+var alpha = 2.0;
+var beta = 10.0;
+
+// sgemm accepts variable ammount of arguments
+t3 = weblas.unpacked.blas.sgemm( alpha, t0, t1, beta, t2 )
+
+// flag true to keep data in GPU for other computations
+result = t3.download( true )	
 console.log( result )
-var resultRGBA = t3.download( true, true ) // download full RGBA texture
-// values in float32array have a stride of 4
-console.log( resultRGBA )
+
+// download full RGBA texture
+var resultRGBA = t3.download( true, true )
+console.log( resultRGBA ) // results in float32array have a stride of 4
 ```
 
 
@@ -79,7 +88,7 @@ t4.pack()
 
 // convert back to unpacked format and save it in the
 // [ 0 = R || 1 = G || 2 = B || 3 = A ] channel ( RED if ommited )
-t4.unpack( 2 )
+t4.unpack( 2 ) // no need to keep track of this option for basic functionality
 
 // transpose and keep the original
 var t4T = t4.transpose( true )
@@ -90,21 +99,6 @@ var resultT_unpacked = t4T.transfer( true ) // console warning, falls back to do
 // pack it
 t4T.pack()
 var resultT_packed = t4T.transfer( true ) // no warning
-
-// equivalence of results
-var deltas = []
-for ( var i = 0; i < resultT_packed.length; i++ ) {
-	var delta = Math.abs( resultT_unpacked[i] - resultT_packed[i] )
-	if ( delta > 1e-07 ) {
-		deltas.push( [i, delta] )
-	}
-}
-if ( deltas.length == 0 ) {
-	console.log( 'All result values are identical up to 1e-07 precision' )
-} else {
-	console.log( deltas.length + ' elements delta exceed expected precision:' )
-	console.log( deltas )
-}
 
 /*
 	t4T is now in packed format
