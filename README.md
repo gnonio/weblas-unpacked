@@ -48,9 +48,9 @@ var M1 = 2, N1 = 4
 var t1 = new weblas.unpacked.Tensor( [M1, N1], cpu_data1 ) // (ie. N0 == M1)
 
 // optional matrix to add to result is mapped directly
-var cpu_data2 = [100,100,100,100,
-				 100,100,100,100,
-				 100,100,100,100]
+var cpu_data2 = [100,200,300,400,
+				 500,600,700,800,
+				 900,1000,1100,1200]
 				 
 var t2 = new weblas.unpacked.Tensor( [M0, N1], cpu_data2 )
 
@@ -88,7 +88,11 @@ t4.pack()
 
 // convert back to unpacked format and save it in the
 // [ 0 = R || 1 = G || 2 = B || 3 = A ] channel ( RED if ommited )
-t4.unpack( 2 ) // no need to keep track of this option for basic functionality
+t4.unpack( 2 )
+
+// no need to keep track for basic functionality
+var t4rgba = t4.download( true, true )
+console.log( t4rgba ) // note the data position in the array
 
 // transpose and keep the original
 var t4T = t4.transpose( true )

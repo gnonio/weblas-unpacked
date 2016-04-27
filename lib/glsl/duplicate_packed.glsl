@@ -1,4 +1,4 @@
-// UNPACKED TO UNPACKED
+// PACKED TO PACKED
 precision highp float;
 
 varying vec2      outTex;	// texture coords of row/column to calculate
