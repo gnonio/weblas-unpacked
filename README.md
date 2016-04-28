@@ -12,7 +12,7 @@ This plugin attempts to optimize in favour of more computations and fewer reads,
 
 #### Some compromises:
 
-* GPU memory requirement is increased four times, can be recovered via the combination of multiple data textures of same shape into one	or combining up to four intermediate result variables side by side on each RGBA channel
+* GPU memory requirement is increased four times, can be recovered via the combination of multiple data textures of same shape into one	or combining up to four intermediate result variables side by side on each RGBA channel (see notes bellow)
 	
 * computations don't benefit from glsl vectorized operations, can be recovered via saves in padding/packing/float conversion computations (ie. transposing is achieved by directly switiching texture coordinates dimensions)
 
@@ -112,10 +112,25 @@ var resultT_packed = t4T.transfer( true ) // no warning
 */
 ```
 
-### Implementation notes:
+## Notes:
 
-keep in mind we are working with floating point values, there are differences in the way javascript and webgl deal with these (order of ops?)
+* main issue: writing to an available slot of an already created tensor (ie. its rgba texture ) implies first duplicating it and only then write new values along with existing ( webgl limitation: we can't sample and write to same texture in a single shader pass )
 
-encoding float values is also prone to yield differences (hint: subnormals)
+	original idea was to let user arbitrarily write to an available tensor slot
 
-texture lookup occurs via normalized coordinates, calculating these without care may easily result in lookup errors
+* still envisioning a strategy to use up GPU allocated memory by Tensors' available channels
+	options: user | self managed
+	
+	self management lifts burden of user but there should be situations where he must take choices
+	
+	if user creates a glsl shader outputing multiple variables in the rgba channels it is not obvious how to make the weblas.unpacked aware of what those channels contain, but this is a specification of the project
+	
+	default behaviour should reuse non used up textures, how to know in advance if user does not intend to use available slots after initial creation
+	
+	Alternative: Mixed? hmm...
+	
+* keep in mind we are working with floating point values, there are differences in the way javascript and webgl deal with these (order of ops?)
+
+* encoding float values is also prone to yield differences (hint: subnormals)
+
+* texture lookup occurs via normalized coordinates, calculating these without care may easily result in lookup errors
