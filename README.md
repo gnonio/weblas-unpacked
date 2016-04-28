@@ -119,6 +119,7 @@ var resultT_packed = t4T.transfer( true ) // no warning
 	original idea was to let user arbitrarily write to an available tensor slot
 
 * still envisioning a strategy to use up GPU allocated memory by Tensors' available channels
+
 	options: user | self managed
 	
 	self management lifts burden of user but there should be situations where he must take choices
@@ -126,6 +127,8 @@ var resultT_packed = t4T.transfer( true ) // no warning
 	if user creates a glsl shader outputing multiple variables in the rgba channels it is not obvious how to make the weblas.unpacked aware of what those channels contain, but this is a specification of the project
 	
 	default behaviour should reuse non used up textures, how to know in advance if user does not intend to use available slots after initial creation
+	
+	a memory manager could save us work when it comes to optimize texture binding ( not naively bind textures but use already bound ones )
 	
 	Alternative: Mixed? hmm...
 	
