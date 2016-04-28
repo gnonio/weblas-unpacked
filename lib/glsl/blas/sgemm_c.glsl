@@ -16,6 +16,11 @@ uniform int			A_channel;		// channel to read data from
 uniform sampler2D 	B;				// texture with data B
 uniform int			B_channel;		// channel to read data from
 
+uniform float		beta;			// 
+
+uniform sampler2D 	C;				// texture with data B
+uniform int			C_channel;		// channel to read data from
+
 uniform int			write_channel;	// channel to write data to
 
 #pragma glslify: get_channel_value = require(../get_channel_value)
@@ -24,6 +29,7 @@ uniform int			write_channel;	// channel to write data to
 void main( void ) {
 	float row_t = outTex.y;
 	float col_t = outTex.x;
+	float c = beta * get_channel_value( C, C_channel, outTex );
 	
 	float hstep = K_hstep;// position for shared dimension on source textures
 	float sum = 0.0;
@@ -39,5 +45,5 @@ void main( void ) {
 		hstep += K_step;
 	}
 
-	gl_FragColor = set_channel_value( write_channel, alpha * sum );
+	gl_FragColor = set_channel_value( write_channel, alpha * sum + c );
 }
