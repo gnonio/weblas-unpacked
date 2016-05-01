@@ -49,14 +49,18 @@ var	webgl_addin		= require('./lib/webgl_addin'),
 var	blas_addon		= require('./lib/blas_addon'),
 	nn_addon		= require('./lib/nn_addon')
 
+// export within weblas
 weblas.unpacked = {
 	'Tensor'	: tensor_unpacked,
+	'mixin'		: tensor_unpacked.mixin,
 	'blas'		: blas_addon,
 	'nn'		: nn_addon
 }
 
+// standalone export
 module.exports = {
 	'Tensor'	: tensor_unpacked,
+	'mixin'		: tensor_unpacked.mixin,
 	'blas'		: blas_addon,
 	'nn'		: nn_addon
 }

@@ -104,6 +104,16 @@ var resultT_unpacked = t4T.transfer( true ) // console warning, falls back to do
 t4T.pack()
 var resultT_packed = t4T.transfer( true ) // no warning
 
+// combine multiple textures together
+// set null to skip corresponding channel ( red, green, blue, alpha )
+var t5 = weblas.unpacked.mixin( null, t2, null, t3 )
+
+var t5rgba = t5.download( true, true ) // exposes combined texture
+console.log( 't5rgba', t5rgba )
+
+// original Tensor references are not broken and GPU memory is released
+console.log( 't2', t2.download( true ) )
+
 /*
 	t4T is now in packed format
 	do some other weblas computations
