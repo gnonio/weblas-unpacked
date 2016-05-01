@@ -21,7 +21,7 @@ var weblas = (typeof window !== "undefined" ? window['weblas'] : typeof global !
 var gl = weblas.gpu.gl
 
 //	Shader
-var sgemm_glsl		 	= "// DOTPRODUCT UNPACKED\r\nprecision highp float;\n\nprecision highp int;\n#define GLSLIFY 1\n\nvarying vec2      \toutTex;\t\t\t// texture coords of row/column to calculate\r\n\nuniform int\t\t\tK;\t\t\t\t// \r\nuniform float\t\tK_step;\t\t\t// \r\nuniform float\t\tK_hstep;\t\t// \r\n\nuniform float\t\talpha;\t\t\t// \r\n\nuniform sampler2D \tA;\t\t\t\t// texture with data A\r\nuniform int\t\t\tA_channel;\t\t// channel to read data from\r\n\nuniform sampler2D \tB;\t\t\t\t// texture with data B\r\nuniform int\t\t\tB_channel;\t\t// channel to read data from\r\n\nuniform int\t\t\twrite_channel;\t// channel to write data to\r\n\nfloat get_channel_value_1604150559( sampler2D texture, int channel, vec2 xy ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn texture2D( texture, xy ).r;\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn texture2D( texture, xy ).g;\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn texture2D( texture, xy ).b;\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn texture2D( texture, xy ).a;\n\n\t}\t\n\n\treturn 0.0;\t// should not happen\r\n}\n\nvec4 set_channel_value_1540259130( int channel, float value ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn vec4( value, 0.0, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn vec4( 0.0, value, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn vec4( 0.0, 0.0, value, 0.0 );\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn vec4( 0.0, 0.0, 0.0, value );\n\n\t}\t\n\n\treturn vec4( 0.0, 0.0, 0.0, 0.0 );\t// should not happen\r\n}\n\nvoid main( void ) {\n\n\tfloat row_t = outTex.y;\n\n\tfloat col_t = outTex.x;\n\n\t\n\n\tfloat hstep = K_hstep;// position for shared dimension on source textures\r\n\tfloat sum = 0.0;\n\n\tfor ( int l = 0 ; l < 4096 ; ++l ) {\n\n\t\tif ( l >= K ) break;    // stop when we finish the row/column\r\n\t\t// l is in pixel space, so we divide by four\r\n\n\t\t// read value from each texture\r\n\t\tfloat a_ik = get_channel_value_1604150559( A, A_channel, vec2( hstep, row_t ) );\n\n\t\tfloat b_kj = get_channel_value_1604150559( B, B_channel, vec2( col_t, hstep ) );\n\n\t\tsum += a_ik * b_kj;\n\n\t\thstep += K_step;\n\n\t}\n\n\tgl_FragColor = set_channel_value_1540259130( write_channel, alpha * sum );\n\n}",
+var sgemm_glsl		 	= "// DOTPRODUCT UNPACKED\r\nprecision highp float;\n\nprecision highp int;\n#define GLSLIFY 1\n\nvarying vec2      \toutTex;\t\t\t// texture coords of row/column to calculate\r\n\nuniform int\t\t\tK;\t\t\t\t// \r\nuniform float\t\tK_step;\t\t\t// \r\nuniform float\t\tK_hstep;\t\t// \r\n\nuniform float\t\talpha;\t\t\t// \r\n\nuniform sampler2D \tA;\t\t\t\t// texture with data A\r\nuniform int\t\t\tA_channel;\t\t// channel to read data from\r\n\nuniform sampler2D \tB;\t\t\t\t// texture with data B\r\nuniform int\t\t\tB_channel;\t\t// channel to read data from\r\n\nuniform int\t\t\twrite_channel;\t// channel to write data to\r\n\nfloat get_channel_value_1540259130( sampler2D texture, int channel, vec2 xy ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn texture2D( texture, xy ).r;\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn texture2D( texture, xy ).g;\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn texture2D( texture, xy ).b;\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn texture2D( texture, xy ).a;\n\n\t}\t\n\n\treturn 0.0;\t// should not happen\r\n}\n\nvec4 set_channel_value_1604150559( int channel, float value ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn vec4( value, 0.0, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn vec4( 0.0, value, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn vec4( 0.0, 0.0, value, 0.0 );\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn vec4( 0.0, 0.0, 0.0, value );\n\n\t}\t\n\n\treturn vec4( 0.0, 0.0, 0.0, 0.0 );\t// should not happen\r\n}\n\nvoid main( void ) {\n\n\tfloat row_t = outTex.y;\n\n\tfloat col_t = outTex.x;\n\n\t\n\n\tfloat hstep = K_hstep;// position for shared dimension on source textures\r\n\tfloat sum = 0.0;\n\n\tfor ( int l = 0 ; l < 4096 ; ++l ) {\n\n\t\tif ( l >= K ) break;    // stop when we finish the row/column\r\n\t\t// l is in pixel space, so we divide by four\r\n\n\t\t// read value from each texture\r\n\t\tfloat a_ik = get_channel_value_1540259130( A, A_channel, vec2( hstep, row_t ) );\n\n\t\tfloat b_kj = get_channel_value_1540259130( B, B_channel, vec2( col_t, hstep ) );\n\n\t\tsum += a_ik * b_kj;\n\n\t\thstep += K_step;\n\n\t}\n\n\tgl_FragColor = set_channel_value_1604150559( write_channel, alpha * sum );\n\n}",
 	sgemm_c_glsl		= "// DOTPRODUCT UNPACKED\r\nprecision highp float;\n\nprecision highp int;\n#define GLSLIFY 1\n\nvarying vec2      \toutTex;\t\t\t// texture coords of row/column to calculate\r\n\nuniform int\t\t\tK;\t\t\t\t// \r\nuniform float\t\tK_step;\t\t\t// \r\nuniform float\t\tK_hstep;\t\t// \r\n\nuniform float\t\talpha;\t\t\t// \r\n\nuniform sampler2D \tA;\t\t\t\t// texture with data A\r\nuniform int\t\t\tA_channel;\t\t// channel to read data from\r\n\nuniform sampler2D \tB;\t\t\t\t// texture with data B\r\nuniform int\t\t\tB_channel;\t\t// channel to read data from\r\n\nuniform float\t\tbeta;\t\t\t// \r\n\nuniform sampler2D \tC;\t\t\t\t// texture with data B\r\nuniform int\t\t\tC_channel;\t\t// channel to read data from\r\n\nuniform int\t\t\twrite_channel;\t// channel to write data to\r\n\nfloat get_channel_value_1540259130( sampler2D texture, int channel, vec2 xy ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn texture2D( texture, xy ).r;\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn texture2D( texture, xy ).g;\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn texture2D( texture, xy ).b;\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn texture2D( texture, xy ).a;\n\n\t}\t\n\n\treturn 0.0;\t// should not happen\r\n}\n\nvec4 set_channel_value_1604150559( int channel, float value ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn vec4( value, 0.0, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn vec4( 0.0, value, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn vec4( 0.0, 0.0, value, 0.0 );\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn vec4( 0.0, 0.0, 0.0, value );\n\n\t}\t\n\n\treturn vec4( 0.0, 0.0, 0.0, 0.0 );\t// should not happen\r\n}\n\nvoid main( void ) {\n\n\tfloat row_t = outTex.y;\n\n\tfloat col_t = outTex.x;\n\n\tfloat c = beta * get_channel_value_1540259130( C, C_channel, outTex );\n\n\t\n\n\tfloat hstep = K_hstep;// position for shared dimension on source textures\r\n\tfloat sum = 0.0;\n\n\tfor ( int l = 0 ; l < 4096 ; ++l ) {\n\n\t\tif ( l >= K ) break;    // stop when we finish the row/column\r\n\t\t// l is in pixel space, so we divide by four\r\n\n\t\t// read value from each texture\r\n\t\tfloat a_ik = get_channel_value_1540259130( A, A_channel, vec2( hstep, row_t ) );\n\n\t\tfloat b_kj = get_channel_value_1540259130( B, B_channel, vec2( col_t, hstep ) );\n\n\t\tsum += a_ik * b_kj;\n\n\t\thstep += K_step;\n\n\t}\n\n\tgl_FragColor = set_channel_value_1604150559( write_channel, alpha * sum + c );\n\n}"
 	
 	gl.sgemm_program	= gl.createProgram( sgemm_glsl )
@@ -142,6 +142,71 @@ function sgemm_args() {
 		break
 	}
 	return [M, N, alpha, A, B, beta, C]
+}
+
+//	Shader
+var sscal_glsl		 	= "// SSCAL UNPACKED\r\nprecision highp float;\n\nprecision highp int;\n#define GLSLIFY 1\n\nvarying vec2      \toutTex;\t\t\t// texture coords of row/column to calculate\r\n\nuniform float\t\talpha;\t\t\t// scalar\r\n\nuniform sampler2D \tX;\t\t\t\t// texture with data X\r\nuniform int\t\t\tX_channel;\t\t// channel to read data from\r\n\nuniform int\t\t\twrite_channel;\t// channel to write data to\r\n\nfloat get_channel_value_1540259130( sampler2D texture, int channel, vec2 xy ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn texture2D( texture, xy ).r;\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn texture2D( texture, xy ).g;\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn texture2D( texture, xy ).b;\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn texture2D( texture, xy ).a;\n\n\t}\t\n\n\treturn 0.0;\t// should not happen\r\n}\n\nvec4 set_channel_value_1604150559( int channel, float value ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn vec4( value, 0.0, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn vec4( 0.0, value, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn vec4( 0.0, 0.0, value, 0.0 );\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn vec4( 0.0, 0.0, 0.0, value );\n\n\t}\t\n\n\treturn vec4( 0.0, 0.0, 0.0, 0.0 );\t// should not happen\r\n}\n\nvoid main( void ) {\n\n\t\n\n\tfloat x_value = get_channel_value_1540259130( X, X_channel, outTex );\n\n\tgl_FragColor = set_channel_value_1604150559( write_channel, alpha * x_value );\n\n}"
+	
+	gl.sscal_program	= gl.createProgram( sscal_glsl )
+
+//	WebGL
+function sscal_gl( M, N, alpha, tensorX, result ) {
+	this.program = this.sscal_program
+	this.selectProgram( this.program )
+
+	var W = N // cols
+	var H = M // rows
+	
+	this.bindUniform( 'uniform1f', alpha, 'alpha' )
+	
+	this.bindInputTexture( tensorX.texture, this.context.TEXTURE0, 'X' )
+	this.bindUniform( 'uniform1i', tensorX.texture_slot, 'X_channel' )
+		
+	this.bindUniform( 'uniform1i', result.texture_slot, 'write_channel' )
+
+	this.bindOutputTexture( H, W, result.texture )
+
+	this.context.drawElements( this.context.TRIANGLES, /*num items*/6, this.context.UNSIGNED_SHORT, 0 )
+
+	this.unbindInputTexture( this.context.TEXTURE0 )
+
+}
+
+//var WebGL	= require('../node_modules/weblas/lib/webgl')
+var WebGL = weblas.gpu.gl.__proto__.constructor
+WebGL.prototype.sscal = sscal_gl
+
+//	Tensor
+function sscal_fnc() {
+	var args = sscal_args( arguments )
+	
+	var M = args[0], N = args[1], alpha = args[2], X = args[3]
+
+	if ( X.packed ) throw new Error('sscal(): Only unpacked textures supported.')
+	
+	// create new tensor to hold result
+	var result = new weblas.unpacked.Tensor( [M, N], null )
+
+	// invoke shader
+	gl.sscal( M, N, alpha, X, result )
+
+	return result
+}
+module.exports.sscal = sscal_fnc
+
+function sscal_args() {
+	var args = arguments[0]
+	var M, N, alpha, X
+	switch( args.length ) {
+		case 2: // alpha, X
+			M = args[1].shape[0], N = args[1].shape[1]
+			alpha = args[0], X = args[1]
+		break
+		default:
+			throw new Error('sscal(): unexpected arguments.' )
+		break
+	}
+	return [M, N, alpha, X]
 }
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],2:[function(require,module,exports){
@@ -310,9 +375,9 @@ Tensor.prototype.postinit = function() {
 	}
 }
 // Prototype overrides
-Tensor.prototype.delete_ = function() {
+Tensor.prototype.delete = function() {
 	this.postinit()
-	return Tensor_unpacked.prototype.delete_.call( this )
+	return Tensor_unpacked.prototype.delete.call( this )
 }
 Tensor.prototype.transfer = function( keep ) {
 	this.postinit()
@@ -402,6 +467,8 @@ function Tensor( shape, data ) {
 	
 	this.packed = false
 	
+	this.mixed = []
+	
 	if ( typeof data == 'undefined' || data == null || data.length == 0 ) {
 		this.texture = gl.createFloatTexture( M, N, false )
 		this.texture_slot = 0
@@ -413,7 +480,7 @@ function Tensor( shape, data ) {
 }
 module.exports = Tensor
 
-Tensor.prototype.delete_ = function() {
+Tensor.prototype.delete = function() {
 	gl.context.deleteTexture( this.texture )
 	this.texture = null
 	this.shape = null
@@ -422,12 +489,13 @@ Tensor.prototype.delete_ = function() {
 	this.requires_encode = null
 	this.packed = null
 	this.texture_slot = null
+	
+	this.mixed = null
 }
 
 Tensor.prototype.transfer = function( keep ) {
 	if ( !this.packed ) {
-		//throw new Error('Warning - transfer(): Unpacked texture - using download()')
-		console.log('Warning - transfer(): Unpacked texture - using download()')
+		console.info('transfer(): Unpacked texture - using download()')
 		return this.download( keep )
 	}
 
@@ -437,7 +505,7 @@ Tensor.prototype.transfer = function( keep ) {
 		result;
 
 	if ( this.requires_encode ) {
-		console.log('Warning transfer(): using float encode.')
+		console.info('transfer(): using float encode.')
 		// create output texture
 		out = gl.createOutputTexture( M, N )
 		// float extraction
@@ -454,7 +522,7 @@ Tensor.prototype.transfer = function( keep ) {
 	gl.context.deleteTexture(out);
 
 	if ( !keep ) {
-		this.delete_()
+		this.delete()
 	}
 
 	return result
@@ -478,7 +546,7 @@ Tensor.prototype.transpose = function( keep ) {
 	}
 
 	if ( !keep ) {
-		this.delete_()
+		this.delete()
 	}
 
 	return tT
@@ -487,7 +555,10 @@ Tensor.prototype.transpose = function( keep ) {
 /*	Facility to convert in-GPU unpacked textures to packed
  */
 Tensor.prototype.pack = function() {
-	if ( this.packed ) throw new Error('pack(): Tensor is already packed to an RGBA texture.')
+	if ( this.packed ) {
+		console.warn('pack(): Tensor is already packed to an RGBA texture.')
+		return
+	}
 
 	var M = this.shape[0],
 		N = this.shape[1],
@@ -510,7 +581,10 @@ Tensor.prototype.pack = function() {
 	optionaly receives a slot selection - 0 by default
  */
 Tensor.prototype.unpack = function( slot ) {
-	if ( !this.packed ) throw new Error('unpack(): Tensor is already unpacked to an RGBA texture.')
+	if ( !this.packed ) {
+		console.warn('unpack(): Tensor is already unpacked to an RGBA texture.')
+		return
+	}
 
 	var M = this.shape[0],
 		N = this.shape[1],
@@ -536,9 +610,11 @@ Tensor.prototype.unpack = function( slot ) {
  */
 Tensor.prototype.download = function( keep, unpacked ) {
 	if ( this.packed ) {
-		console.log('Warning - download(): Packed texture - using transfer()')
+		console.info('download(): Packed texture - using transfer()')
 		return this.transfer( keep )
 	}
+	if ( !weblas.gpu.gl.context.isTexture( this.texture ) )
+		throw new Error('download(): Texture is void.')
 
 	var M = this.shape[0],
 		N = this.shape[1],
@@ -556,7 +632,7 @@ Tensor.prototype.download = function( keep, unpacked ) {
 	gl.context.deleteTexture( out )
 	
 	if ( !keep ){
-		this.delete_()
+		this.delete()
 	}
 	return result
 }
@@ -587,20 +663,31 @@ Tensor.prototype.duplicate = function() {
 	}
 	return clone
 }
+
+function selfout( tensors, self ) {
+	var include = []
+	for ( var t in tensors ) {
+		if ( tensors[ t ] != self ) include.push( tensors[ t ] )
+	}
+	return include
+}
 /*	Facility to combine Tensors together
  */
 function mixin( red, green, blue, alpha ) {
 	// first non null tensor defines shape
 	var tensors = []
+	var mtensors = []
 	for ( var t in arguments ) {		
-		if ( arguments[t] != null )	tensors.push( arguments[t] )
+		if ( arguments[t] instanceof weblas.unpacked.Tensor ) {
+			tensors.push( arguments[t] )
+			mtensors.push( arguments[t] )
+		}
 	}
 	
 	if ( tensors.length > 0 ) {
 		for ( var t in tensors ) {		
-			if ( tensors[t].shape[0] != tensors[0].shape[0] )
-				throw new Error('mixin(): Tensors must have same shape.')
-			if ( tensors[t].shape[1] != tensors[0].shape[1] )
+			if ( tensors[t].shape[0] != tensors[0].shape[0] ||
+				 tensors[t].shape[1] != tensors[0].shape[1] )
 				throw new Error('mixin(): Tensors must have same shape.')
 		}
 	}
@@ -612,28 +699,41 @@ function mixin( red, green, blue, alpha ) {
 	
 	gl.mixin( M, N, red, green, blue, alpha, mix )
 	
-	if ( red != null ) {
-		gl.context.deleteTexture( red.texture )	// delete original texture
-		red.texture = mix.texture				// update Tensor reference to new texture
-		red.texture_slot = 0					// update Tensor reference to new slot
+	// mtensors.push( mix )
+	
+	// some memory management before updating tensors
+	for ( var t in arguments ) {
+		var tensor = arguments[ t ]
+		if ( tensor != null ) {
+			// delete original texture if not shared anymore
+			if ( tensor.mixed.length == 0 ) {
+				gl.context.deleteTexture( tensor.texture )
+			} else {
+				// just remove itself from other Tensor's mixed with references
+				for ( var tt in tensor.mixed ) {
+					tensor.mixed[ tt ].mixed = selfout( tensor.mixed[ tt ].mixed, tensor )
+				}
+			}
+		}
 	}
 	
-	if ( green != null ) {
-		gl.context.deleteTexture( green.texture )
-		green.texture = mix.texture
-		green.texture_slot = 1
+	// final updates - should this really be done in stages?
+	// 				 - playing safe, textures might stay around, worse... unreferenced
+	for ( var t in arguments ) {
+		var tensor = arguments[ t ]
+		if ( tensor != null ) {
+			// update Tensor reference to new texture
+			tensor.texture = mix.texture			
+			// update Tensor reference to new slot
+			tensor.texture_slot = Number( t )			
+			// update Tensors mixed with ( including the mixer tensor (or not) )
+			tensor.mixed = selfout( mtensors, tensor )
+		}
 	}
 	
-	if ( blue != null ) {
-		gl.context.deleteTexture( blue.texture )
-		blue.texture = mix.texture
-		blue.texture_slot = 2
-	}
-	if ( alpha != null ) {
-		gl.context.deleteTexture( alpha.texture )
-		alpha.texture = mix.texture
-		alpha.texture_slot = 3
-	}
+	mix.mixed = tensors
+	
+	//console.log( tensors )
 	
 	return mix
 }
@@ -662,9 +762,9 @@ var WebGL = weblas.gpu.gl.__proto__.constructor
 
 // Basic shaders
 var read_packed			 = "// PACKED TO PACKED (UNPADDED)\r\nprecision highp float;\n#define GLSLIFY 1\n\nvarying vec2      outTex;\t// texture coords of row/column to calculate\r\nuniform sampler2D A;\t\t// texture with data from padded A\r\n\nvoid main(void) {\n\n\t// get the implied row and column from .y and .x of passed (output)\r\n\t// texture coordinate. These map directly to input texture space when\r\n\t// the relevant dimensions are the same.\r\n\t//float row_t = outTex.y;\r\n\t//float col_t = outTex.x;\r\n\t\n\n\tgl_FragColor = texture2D( A, outTex );\n\n}",
-	read_packed_padded	 = "// PACKED TO PACKED (PADDED)\r\nprecision highp float;\n#define GLSLIFY 1\n\nvarying vec2\t\toutTex;\t\t\t// texture coords of row/column to calculate\r\n\nuniform float\t\tcols;\t\t\t// number of columns\r\nuniform float\t\tcol_hstep;\t\t// half step in texture space\r\nuniform float\t\trows;\t\t\t// number of rows\r\nuniform float\t\trow_hstep;\t\t// half step in texture space\r\n\nuniform float\t\tup_cols;\t\t// number of unpacked columns\r\nuniform float\t\tup_col_hstep;\t// half step in texture space\r\n\nuniform float\t\tpad;\t\t\t// number of unpacked columns accounting padding\r\nuniform float\t\tup_cols_padded;\t// number of unpacked columns accounting padding\r\n\nuniform sampler2D\tA;\t\t\t\t// texture with data from padded A\r\n\nvec2 get_indices_1540259130( float col_t, float cols, float row_t, float rows ) {\t\n\n\tfloat col_index = floor(col_t * cols);\n\n\tfloat row_index = floor(row_t * rows);\n\n\t\n\n\treturn vec2(col_index, row_index);\n\n}\n\nvec2 get_coords_1604150559( float index, float cols, float cols_hstep, float rows, float row_hstep ) {\n\n\tfloat col_index = mod( index + 0.1, cols );// +0.1 prevents rounding error in next set of ops\r\n\tfloat row_index = floor( (index + 0.1) / cols );\n\n\t\n\n\t//float index = row_index * cols + col_index;\r\n\t\n\n\treturn vec2( col_index / cols + cols_hstep, row_index / rows + row_hstep );\n\n}\n\nfloat get_channel_value_1117569599( sampler2D texture, int channel, vec2 xy ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn texture2D( texture, xy ).r;\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn texture2D( texture, xy ).g;\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn texture2D( texture, xy ).b;\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn texture2D( texture, xy ).a;\n\n\t}\t\n\n\treturn 0.0;\t// should not happen\r\n}\n\nvoid main(void) {\n\n\t// get the implied row and column from .t and .s of passed (output) texture coordinate.\r\n\tfloat col_t = outTex.s;\n\n\tfloat row_t = outTex.t;\n\n\t\n\n\t// get the implied row and column indices\r\n\tvec2 rowcol = get_indices_1540259130( col_t, cols, row_t, rows );\n\n\t\n\n\t// this pixel index as if unpacked (up_cols = cols * 4.0)\r\n\tfloat index = rowcol.y * up_cols + rowcol.x * 4.0;\n\n\t\n\n\t// expanded indices per channel\r\n\tfloat index_r = index + 0.1;\n\n\tfloat index_g = index + 1.1;\n\n\tfloat index_b = index + 2.1;\n\n\tfloat index_a = index + 3.1;\n\n\t\n\n\t// number of padded elements(pixels) up to this index\r\n\tfloat pads_r = floor( index_r / up_cols_padded );\n\n\tfloat pads_g = floor( index_g / up_cols_padded );\n\n\tfloat pads_b = floor( index_b / up_cols_padded );\n\n\tfloat pads_a = floor( index_a / up_cols_padded );\n\n\t\n\n\t// new index accounting padding\r\n\tfloat nindex_r = index_r + pads_r * pad;\n\n\tfloat nindex_g = index_g + pads_g * pad;\n\n\tfloat nindex_b = index_b + pads_b * pad;\n\n\tfloat nindex_a = index_a + pads_a * pad;\n\n\t// new channel based on new index ( these get shifted )\r\n\tfloat nchannel_r = floor( mod( nindex_r, 4.0 ) );\n\n\tfloat nchannel_g = floor( mod( nindex_g, 4.0 ) );\n\n\tfloat nchannel_b = floor( mod( nindex_b, 4.0 ) );\n\n\tfloat nchannel_a = floor( mod( nindex_a, 4.0 ) );\n\n\t\n\n\t// can be optimized, at most 2 pixels should be read\r\n\t// get the sequence of coordinates of texture as if unpacked\r\n\tvec2 up_s = get_coords_1604150559( nindex_r, up_cols, up_col_hstep, rows, row_hstep );\n\n\tvec2 up_t = get_coords_1604150559( nindex_g, up_cols, up_col_hstep, rows, row_hstep );\n\n\tvec2 up_p = get_coords_1604150559( nindex_b, up_cols, up_col_hstep, rows, row_hstep );\n\n\tvec2 up_q = get_coords_1604150559( nindex_a, up_cols, up_col_hstep, rows, row_hstep );\n\n\t\n\n\t// read four values from texture considering the new channels \r\n\tfloat r = get_channel_value_1117569599( A, int(nchannel_r), up_s );\n\n\tfloat g = get_channel_value_1117569599( A, int(nchannel_g), up_t );\n\n\tfloat b = get_channel_value_1117569599( A, int(nchannel_b), up_p );\n\n\tfloat a = get_channel_value_1117569599( A, int(nchannel_a), up_q );\n\n\t\n\n\t//gl_FragColor = vec4( up_s.s, up_t.s, up_p.s, up_q.s );\r\n\t//gl_FragColor = vec4( nchannel_r, nchannel_g, nchannel_b, nchannel_a );\r\n\t//gl_FragColor = vec4( new_r, new_g, new_b, new_a );\r\n\tgl_FragColor = vec4( r, g, b, a );\n\n}",
+	read_packed_padded	 = "// PACKED TO PACKED (PADDED)\r\nprecision highp float;\n#define GLSLIFY 1\n\nvarying vec2\t\toutTex;\t\t\t// texture coords of row/column to calculate\r\n\nuniform float\t\tcols;\t\t\t// number of columns\r\nuniform float\t\tcol_hstep;\t\t// half step in texture space\r\nuniform float\t\trows;\t\t\t// number of rows\r\nuniform float\t\trow_hstep;\t\t// half step in texture space\r\n\nuniform float\t\tup_cols;\t\t// number of unpacked columns\r\nuniform float\t\tup_col_hstep;\t// half step in texture space\r\n\nuniform float\t\tpad;\t\t\t// number of unpacked columns accounting padding\r\nuniform float\t\tup_cols_padded;\t// number of unpacked columns accounting padding\r\n\nuniform sampler2D\tA;\t\t\t\t// texture with data from padded A\r\n\nvec2 get_indices_1540259130( float col_t, float cols, float row_t, float rows ) {\t\n\n\tfloat col_index = floor(col_t * cols);\n\n\tfloat row_index = floor(row_t * rows);\n\n\t\n\n\treturn vec2(col_index, row_index);\n\n}\n\nvec2 get_coords_1117569599( float index, float cols, float cols_hstep, float rows, float row_hstep ) {\n\n\tfloat col_index = mod( index + 0.1, cols );// +0.1 prevents rounding error in next set of ops\r\n\tfloat row_index = floor( (index + 0.1) / cols );\n\n\t\n\n\t//float index = row_index * cols + col_index;\r\n\t\n\n\treturn vec2( col_index / cols + cols_hstep, row_index / rows + row_hstep );\n\n}\n\nfloat get_channel_value_1604150559( sampler2D texture, int channel, vec2 xy ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn texture2D( texture, xy ).r;\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn texture2D( texture, xy ).g;\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn texture2D( texture, xy ).b;\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn texture2D( texture, xy ).a;\n\n\t}\t\n\n\treturn 0.0;\t// should not happen\r\n}\n\nvoid main(void) {\n\n\t// get the implied row and column from .t and .s of passed (output) texture coordinate.\r\n\tfloat col_t = outTex.s;\n\n\tfloat row_t = outTex.t;\n\n\t\n\n\t// get the implied row and column indices\r\n\tvec2 rowcol = get_indices_1540259130( col_t, cols, row_t, rows );\n\n\t\n\n\t// this pixel index as if unpacked (up_cols = cols * 4.0)\r\n\tfloat index = rowcol.y * up_cols + rowcol.x * 4.0;\n\n\t\n\n\t// expanded indices per channel\r\n\tfloat index_r = index + 0.1;\n\n\tfloat index_g = index + 1.1;\n\n\tfloat index_b = index + 2.1;\n\n\tfloat index_a = index + 3.1;\n\n\t\n\n\t// number of padded elements(pixels) up to this index\r\n\tfloat pads_r = floor( index_r / up_cols_padded );\n\n\tfloat pads_g = floor( index_g / up_cols_padded );\n\n\tfloat pads_b = floor( index_b / up_cols_padded );\n\n\tfloat pads_a = floor( index_a / up_cols_padded );\n\n\t\n\n\t// new index accounting padding\r\n\tfloat nindex_r = index_r + pads_r * pad;\n\n\tfloat nindex_g = index_g + pads_g * pad;\n\n\tfloat nindex_b = index_b + pads_b * pad;\n\n\tfloat nindex_a = index_a + pads_a * pad;\n\n\t// new channel based on new index ( these get shifted )\r\n\tfloat nchannel_r = floor( mod( nindex_r, 4.0 ) );\n\n\tfloat nchannel_g = floor( mod( nindex_g, 4.0 ) );\n\n\tfloat nchannel_b = floor( mod( nindex_b, 4.0 ) );\n\n\tfloat nchannel_a = floor( mod( nindex_a, 4.0 ) );\n\n\t\n\n\t// can be optimized, at most 2 pixels should be read\r\n\t// get the sequence of coordinates of texture as if unpacked\r\n\tvec2 up_s = get_coords_1117569599( nindex_r, up_cols, up_col_hstep, rows, row_hstep );\n\n\tvec2 up_t = get_coords_1117569599( nindex_g, up_cols, up_col_hstep, rows, row_hstep );\n\n\tvec2 up_p = get_coords_1117569599( nindex_b, up_cols, up_col_hstep, rows, row_hstep );\n\n\tvec2 up_q = get_coords_1117569599( nindex_a, up_cols, up_col_hstep, rows, row_hstep );\n\n\t\n\n\t// read four values from texture considering the new channels \r\n\tfloat r = get_channel_value_1604150559( A, int(nchannel_r), up_s );\n\n\tfloat g = get_channel_value_1604150559( A, int(nchannel_g), up_t );\n\n\tfloat b = get_channel_value_1604150559( A, int(nchannel_b), up_p );\n\n\tfloat a = get_channel_value_1604150559( A, int(nchannel_a), up_q );\n\n\t\n\n\t//gl_FragColor = vec4( up_s.s, up_t.s, up_p.s, up_q.s );\r\n\t//gl_FragColor = vec4( nchannel_r, nchannel_g, nchannel_b, nchannel_a );\r\n\t//gl_FragColor = vec4( new_r, new_g, new_b, new_a );\r\n\tgl_FragColor = vec4( r, g, b, a );\n\n}",
 	pack				 = "// UNPACKED to PACKED+UNDEFERRED\r\nprecision highp float;\n#define GLSLIFY 1\n\nvarying vec2      outTex;\t// texture coords of row/column to calculate\r\n\nuniform float\t\tcols;\t\t\t// number of columns\r\nuniform float\t\tcol_hstep;\t\t// half step in texture space\r\nuniform float\t\trows;\t\t\t// number of rows\r\nuniform float\t\trow_hstep;\t\t// half step in texture space\r\n\nuniform float\t\tup_cols;\t\t// number of unpacked columns\r\nuniform float\t\tup_col_hstep;\t// half step in texture\r\n\nuniform sampler2D\tA;\t\t\t\t// texture with unpacked data A\r\nuniform int\t\t\tA_channel;\t\t// channel to read data from\r\n\nvec2 get_indices_1540259130( float col_t, float cols, float row_t, float rows ) {\t\n\n\tfloat col_index = floor(col_t * cols);\n\n\tfloat row_index = floor(row_t * rows);\n\n\t\n\n\treturn vec2(col_index, row_index);\n\n}\n\nvec2 get_coords_1604150559( float index, float cols, float cols_hstep, float rows, float row_hstep ) {\n\n\tfloat col_index = mod( index + 0.1, cols );// +0.1 prevents rounding error in next set of ops\r\n\tfloat row_index = floor( (index + 0.1) / cols );\n\n\t\n\n\t//float index = row_index * cols + col_index;\r\n\t\n\n\treturn vec2( col_index / cols + cols_hstep, row_index / rows + row_hstep );\n\n}\n\nfloat get_channel_value_1117569599( sampler2D texture, int channel, vec2 xy ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn texture2D( texture, xy ).r;\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn texture2D( texture, xy ).g;\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn texture2D( texture, xy ).b;\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn texture2D( texture, xy ).a;\n\n\t}\t\n\n\treturn 0.0;\t// should not happen\r\n}\n\nvoid main(void) {\n\n\t// get the implied row and column from .t and .s of passed (output) texture coordinate.\r\n\tfloat col_t = outTex.s;\n\n\tfloat row_t = outTex.t;\n\n\t\n\n\t// get the implied row and column indices\r\n\tvec2 rowcol = get_indices_1540259130( col_t, cols, row_t, rows );\n\n\t\n\n\t// unpacked row and column index (columns are multiplied by 4 channels)\r\n\tfloat up_col = rowcol.x * 4.0;\n\n\tfloat up_row = rowcol.y / rows + row_hstep;\n\n\t\n\n\t// set a sequence of four indices\r\n\tvec4 seq_col_indices = vec4( up_col, up_col + 1.0, up_col + 2.0, up_col + 3.0 );\n\n\t\n\n\t// get the sequence of coordinates of unpacked texture\r\n\tvec2 up_s = vec2( seq_col_indices.x / up_cols + up_col_hstep, up_row );\n\n\tvec2 up_t = vec2( seq_col_indices.y / up_cols + up_col_hstep, up_row );\n\n\tvec2 up_p = vec2( seq_col_indices.z / up_cols + up_col_hstep, up_row );\n\n\tvec2 up_q = vec2( seq_col_indices.w / up_cols + up_col_hstep, up_row );\n\n\t\n\n\t// read four values from unpacked texture\r\n\tfloat r = get_channel_value_1117569599( A, A_channel, up_s );\n\n\tfloat g = get_channel_value_1117569599( A, A_channel, up_t );\n\n\tfloat b = get_channel_value_1117569599( A, A_channel, up_p );\n\n\tfloat a = get_channel_value_1117569599( A, A_channel, up_q );\n\n\tgl_FragColor = vec4( r, g, b, a );\n\n}",
-	unpack				 = "// PACKED+UNDEFERRED TO UNPACKED\r\nprecision highp float;\n#define GLSLIFY 1\n\nvarying vec2\t\toutTex;\t\t// texture coords of row/column to calculate\r\n\nuniform float\t\tcols;\t\t\t// number of columns\r\nuniform float\t\tcol_hstep;\t\t// half step in texture space\r\nuniform float\t\trows;\t\t\t// number of rows\r\nuniform float\t\trow_hstep;\t\t// half step in texture space\r\n\nuniform float\t\tp_cols;\t\t\t// number of packed columns\r\nuniform float\t\tp_col_hstep;\t// half step in texture space\r\n\nuniform sampler2D\tA;\t\t\t\t// texture with single channel data from A\r\n\nuniform int\t\t\twrite_channel;\t// channel to write texture to\r\n\nvec2 get_indices_1540259130( float col_t, float cols, float row_t, float rows ) {\t\n\n\tfloat col_index = floor(col_t * cols);\n\n\tfloat row_index = floor(row_t * rows);\n\n\t\n\n\treturn vec2(col_index, row_index);\n\n}\n\nvec2 get_coords_1117569599( float index, float cols, float cols_hstep, float rows, float row_hstep ) {\n\n\tfloat col_index = mod( index + 0.1, cols );// +0.1 prevents rounding error in next set of ops\r\n\tfloat row_index = floor( (index + 0.1) / cols );\n\n\t\n\n\t//float index = row_index * cols + col_index;\r\n\t\n\n\treturn vec2( col_index / cols + cols_hstep, row_index / rows + row_hstep );\n\n}\n\nfloat get_channel_value_1604150559( sampler2D texture, int channel, vec2 xy ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn texture2D( texture, xy ).r;\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn texture2D( texture, xy ).g;\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn texture2D( texture, xy ).b;\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn texture2D( texture, xy ).a;\n\n\t}\t\n\n\treturn 0.0;\t// should not happen\r\n}\n\nvec4 set_channel_value_2281831123( int channel, float value ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn vec4( value, 0.0, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn vec4( 0.0, value, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn vec4( 0.0, 0.0, value, 0.0 );\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn vec4( 0.0, 0.0, 0.0, value );\n\n\t}\t\n\n\treturn vec4( 0.0, 0.0, 0.0, 0.0 );\t// should not happen\r\n}\n\nvoid main(void) {\n\n\t// get the implied row and column from .t and .s of passed (output) texture coordinate.\r\n\tfloat col_t = outTex.s;\n\n\tfloat row_t = outTex.t;\n\n\t\n\n\tvec2 rowcol = get_indices_1540259130( col_t, cols, row_t, rows );\n\n\tfloat p_col_index = floor( rowcol.x / 4.0 );\t\n\n\tfloat p_index = floor( rowcol.y * p_cols + p_col_index ); //  + 0.1\r\n\t\n\n\tint A_channel = int( mod( rowcol.x, 4.0 ) );\n\n\tvec2 packed_st = get_coords_1117569599( p_index, p_cols, p_col_hstep, rows, row_hstep );\t\n\n\tfloat value = get_channel_value_1604150559( A, A_channel, packed_st );\n\n\t\n\n\tgl_FragColor = set_channel_value_2281831123( write_channel, value );\n\n}\n\n",
+	unpack				 = "// PACKED+UNDEFERRED TO UNPACKED\r\nprecision highp float;\n#define GLSLIFY 1\n\nvarying vec2\t\toutTex;\t\t// texture coords of row/column to calculate\r\n\nuniform float\t\tcols;\t\t\t// number of columns\r\nuniform float\t\tcol_hstep;\t\t// half step in texture space\r\nuniform float\t\trows;\t\t\t// number of rows\r\nuniform float\t\trow_hstep;\t\t// half step in texture space\r\n\nuniform float\t\tp_cols;\t\t\t// number of packed columns\r\nuniform float\t\tp_col_hstep;\t// half step in texture space\r\n\nuniform sampler2D\tA;\t\t\t\t// texture with single channel data from A\r\n\nuniform int\t\t\twrite_channel;\t// channel to write texture to\r\n\nvec2 get_indices_1540259130( float col_t, float cols, float row_t, float rows ) {\t\n\n\tfloat col_index = floor(col_t * cols);\n\n\tfloat row_index = floor(row_t * rows);\n\n\t\n\n\treturn vec2(col_index, row_index);\n\n}\n\nvec2 get_coords_2281831123( float index, float cols, float cols_hstep, float rows, float row_hstep ) {\n\n\tfloat col_index = mod( index + 0.1, cols );// +0.1 prevents rounding error in next set of ops\r\n\tfloat row_index = floor( (index + 0.1) / cols );\n\n\t\n\n\t//float index = row_index * cols + col_index;\r\n\t\n\n\treturn vec2( col_index / cols + cols_hstep, row_index / rows + row_hstep );\n\n}\n\nfloat get_channel_value_1604150559( sampler2D texture, int channel, vec2 xy ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn texture2D( texture, xy ).r;\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn texture2D( texture, xy ).g;\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn texture2D( texture, xy ).b;\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn texture2D( texture, xy ).a;\n\n\t}\t\n\n\treturn 0.0;\t// should not happen\r\n}\n\nvec4 set_channel_value_1117569599( int channel, float value ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn vec4( value, 0.0, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn vec4( 0.0, value, 0.0, 0.0 );\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn vec4( 0.0, 0.0, value, 0.0 );\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn vec4( 0.0, 0.0, 0.0, value );\n\n\t}\t\n\n\treturn vec4( 0.0, 0.0, 0.0, 0.0 );\t// should not happen\r\n}\n\nvoid main(void) {\n\n\t// get the implied row and column from .t and .s of passed (output) texture coordinate.\r\n\tfloat col_t = outTex.s;\n\n\tfloat row_t = outTex.t;\n\n\t\n\n\tvec2 rowcol = get_indices_1540259130( col_t, cols, row_t, rows );\n\n\tfloat p_col_index = floor( rowcol.x / 4.0 );\t\n\n\tfloat p_index = floor( rowcol.y * p_cols + p_col_index ); //  + 0.1\r\n\t\n\n\tint A_channel = int( mod( rowcol.x, 4.0 ) );\n\n\tvec2 packed_st = get_coords_2281831123( p_index, p_cols, p_col_hstep, rows, row_hstep );\t\n\n\tfloat value = get_channel_value_1604150559( A, A_channel, packed_st );\n\n\t\n\n\tgl_FragColor = set_channel_value_1117569599( write_channel, value );\n\n}\n\n",
 	render_packed		 = "// UNPACKED to PACKED+DEFERRED\r\nprecision highp float;\n#define GLSLIFY 1\n\nvarying vec2\t\toutTex;\t\t\t// texture coords of row/column to calculate\r\n\nuniform float\t\tcols;\t\t\t// number of columns\r\nuniform float\t\tcol_hstep;\t\t// half step in texture space\r\nuniform float\t\trows;\t\t\t// number of rows\r\nuniform float\t\trow_hstep;\t\t// half step in texture space\r\n\nuniform float\t\tup_cols;\t\t// number of unpacked columns\r\nuniform float\t\tup_col_hstep;\t// half step in texture space\r\nuniform float\t\tup_cols_padded;\t// number of unpacked columns accounting padding\r\n\nuniform sampler2D\tA;\t\t\t\t// texture with single channel data\r\nuniform int\t\t\tA_channel;\t\t// channel to read data from\r\n\nvec2 get_indices_1540259130( float col_t, float cols, float row_t, float rows ) {\t\n\n\tfloat col_index = floor(col_t * cols);\n\n\tfloat row_index = floor(row_t * rows);\n\n\t\n\n\treturn vec2(col_index, row_index);\n\n}\n\nvec2 get_coords_1604150559( float index, float cols, float cols_hstep, float rows, float row_hstep ) {\n\n\tfloat col_index = mod( index + 0.1, cols );// +0.1 prevents rounding error in next set of ops\r\n\tfloat row_index = floor( (index + 0.1) / cols );\n\n\t\n\n\t//float index = row_index * cols + col_index;\r\n\t\n\n\treturn vec2( col_index / cols + cols_hstep, row_index / rows + row_hstep );\n\n}\n\nfloat get_channel_value_1117569599( sampler2D texture, int channel, vec2 xy ) {\t\n\n\tif ( channel == 0 ) {\n\n\t\treturn texture2D( texture, xy ).r;\n\n\t}\n\n\tif ( channel == 1 ) {\n\n\t\treturn texture2D( texture, xy ).g;\n\n\t}\n\n\tif ( channel == 2 ) {\n\n\t\treturn texture2D( texture, xy ).b;\n\n\t}\n\n\tif ( channel == 3 ) {\n\n\t\treturn texture2D( texture, xy ).a;\n\n\t}\t\n\n\treturn 0.0;\t// should not happen\r\n}\n\nvoid main(void) {\n\n\t// get the implied row and column from .t and .s of passed (output) texture coordinate.\r\n\tfloat col_t = outTex.s;\n\n\tfloat row_t = outTex.t;\n\n\t\n\n\t// get the implied row and column indices\r\n\tvec2 rowcol = get_indices_1540259130( col_t, cols, row_t, rows );\n\n\t\n\n\t// unpacked index (columns are multiplied by 4 channels)\r\n\tfloat up_index = rowcol.y * cols * 4.0 + rowcol.x * 4.0;\n\n\t\n\n\t// set a sequence of four indices\r\n\tvec4 seq_indices = vec4( up_index, up_index + 1.0, up_index + 2.0, up_index + 3.0 );\n\n\t\n\n\t// get the sequence of coordinates of unpacked texture\r\n\tvec2 up_s = get_coords_1604150559( seq_indices.x, up_cols_padded, up_col_hstep, rows, row_hstep );\n\n\tvec2 up_t = get_coords_1604150559( seq_indices.y, up_cols_padded, up_col_hstep, rows, row_hstep );\n\n\tvec2 up_p = get_coords_1604150559( seq_indices.z, up_cols_padded, up_col_hstep, rows, row_hstep );\n\n\tvec2 up_q = get_coords_1604150559( seq_indices.w, up_cols_padded, up_col_hstep, rows, row_hstep );\n\n\t\n\n\t// read four values from unpacked texture\r\n\tfloat r = get_channel_value_1117569599( A, A_channel, up_s );\n\n\tfloat g = get_channel_value_1117569599( A, A_channel, up_t );\n\n\tfloat b = get_channel_value_1117569599( A, A_channel, up_p );\n\n\tfloat a = get_channel_value_1117569599( A, A_channel, up_q );\n\n\tgl_FragColor = vec4( r, g, b, a );\n\n}\n\n",
 	render_unpacked		 = "// UNPACKED to UNPACKED\r\nprecision highp float;\n#define GLSLIFY 1\n\nvarying vec2      outTex;\t// texture coords of row/column to calculate\r\nuniform sampler2D A;\t\t// texture with data from padded A\r\n\nvoid main(void) {\n\n\t// get the implied row and column from .y and .x of passed (output)\r\n\t// texture coordinate. These map directly to input texture space when\r\n\t// the relevant dimensions are the same.\r\n\t//float row_t = outTex.y;\r\n\t//float col_t = outTex.x;\r\n\t\n\n\tgl_FragColor = texture2D( A, outTex );\n\n}",
 	
