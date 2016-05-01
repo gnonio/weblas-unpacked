@@ -104,6 +104,24 @@ var resultT_unpacked = t4T.transfer( true ) // console warning, falls back to do
 t4T.pack()
 var resultT_packed = t4T.transfer( true ) // no warning
 
+// combine multiple textures together
+// set null to skip corresponding channel ( red, green, blue, alpha )
+var t5 = weblas.unpacked.mixin( null, t2, null, t3 )
+
+var t5rgba = t5.download( true, true ) // exposes combined texture
+console.log( 't5rgba', t5rgba )
+
+// scale a Tensor
+var t6 = weblas.unpacked.blas.sscal( 5, t3 )
+
+// remix it
+t5 = weblas.unpacked.mixin( t3, t6, null, t2 )
+t5rgba = t5.download( true, true )
+console.log( 't5rgba', t5rgba )
+
+// original Tensor references are not broken, internally GPU memory is released
+console.log( 't2', t2.download( true ) )
+
 /*
 	t4T is now in packed format
 	do some other weblas computations
@@ -114,24 +132,10 @@ var resultT_packed = t4T.transfer( true ) // no warning
 
 ## Notes:
 
-* main issue: writing to an available slot of an already created tensor (ie. its rgba texture ) implies first duplicating it and only then write new values along with existing ( webgl limitation: we can't sample and write to same texture in a single shader pass )
+* GPU memory: we introduced a function mixin() which allows the user to specify combinations of Tensors, GPU memory is released as soon as a given Tensor finds allocation within a mixed Tensor ( and corresponding texture does not host other tensors ). Ultimately, remixing may leave a previous mixed Tensor referencing old data, in which case the option was to invalidate such tensors ( and weblas unpacked errors out ), always giving preference to newly created ones.
 
-	original idea was to let user arbitrarily write to an available tensor slot
+Currently this appears efficient, but it is not fully tested, and it may turn out a more conservative solution is required. 
 
-* still envisioning a strategy to use up GPU allocated memory by Tensors' available channels
-
-	options: user | self managed
-	
-	self management lifts burden of user but there should be situations where he must take choices
-	
-	if user creates a glsl shader outputing multiple variables in the rgba channels it is not obvious how to make the weblas.unpacked aware of what those channels contain, but this is a specification of the project
-	
-	default behaviour should reuse non used up textures, how to know in advance if user does not intend to use available slots after initial creation
-	
-	a memory manager could save us work when it comes to optimize texture binding ( not naively bind textures but use already bound ones )
-	
-	Alternative: Mixed? hmm...
-	
 * keep in mind we are working with floating point values, there are differences in the way javascript and webgl deal with these (order of ops?)
 
 * encoding float values is also prone to yield differences (hint: subnormals)
