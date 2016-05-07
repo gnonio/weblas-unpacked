@@ -68,8 +68,5 @@ void main(void) {
 	float b = get_channel_value( A, int(nchannel_b), up_p );
 	float a = get_channel_value( A, int(nchannel_a), up_q );
 	
-	//gl_FragColor = vec4( up_s.s, up_t.s, up_p.s, up_q.s );
-	//gl_FragColor = vec4( nchannel_r, nchannel_g, nchannel_b, nchannel_a );
-	//gl_FragColor = vec4( new_r, new_g, new_b, new_a );
 	gl_FragColor = vec4( r, g, b, a );
 }
