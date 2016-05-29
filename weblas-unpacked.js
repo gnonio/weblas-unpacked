@@ -15,7 +15,7 @@ weblas-unpacked.js
 	waste in compute cycles may be recovered via saves in padding/packing/float conversion computations
 	gains in glsl logic simplification (ie. transposing is achieved by switiching texture coordinates dims)
 	
-	texture_slot will be used to select the channel to read from in-shader
+	channel will be used to select the channel to read from in-shader
 	we might devise a memory RGBA texture manager considering texture binding efficiency
 	picking the first free slot of an attributed RGBA texture, newly created or already existing
 	

@@ -1,7 +1,7 @@
 // PACKED+UNDEFERRED TO UNPACKED
 precision highp float;
 
-varying vec2		outTex;		// texture coords of row/column to calculate
+varying vec2		UVs;		// texture coords of row/column to calculate
 
 uniform float		cols;			// number of columns
 uniform float		col_hstep;		// half step in texture space
@@ -22,8 +22,8 @@ uniform int			write_channel;	// channel to write texture to
 
 void main(void) {
 	// get the implied row and column from .t and .s of passed (output) texture coordinate.
-	float col_t = outTex.s;
-	float row_t = outTex.t;
+	float col_t = UVs.s;
+	float row_t = UVs.t;
 	
 	vec2 rowcol = get_indices( col_t, cols, row_t, rows );
 	float p_col_index = floor( rowcol.x / 4.0 );	

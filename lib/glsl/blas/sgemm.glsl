@@ -2,7 +2,7 @@
 precision highp float;
 precision highp int;
 
-varying vec2      	outTex;			// texture coords of row/column to calculate
+varying vec2      	UVs;			// texture coords of row/column to calculate
 
 uniform int			K;				// 
 uniform float		K_step;			// 
@@ -22,8 +22,8 @@ uniform int			write_channel;	// channel to write data to
 #pragma glslify: set_channel_value = require(../set_channel_value)
 
 void main( void ) {
-	float row_t = outTex.y;
-	float col_t = outTex.x;
+	float row_t = UVs.y;
+	float col_t = UVs.x;
 	
 	float hstep = K_hstep;// position for shared dimension on source textures
 	float sum = 0.0;

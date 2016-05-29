@@ -1,7 +1,7 @@
 // APPEND BIAS UNPACKED
 precision highp float;
 
-varying vec2      	outTex;			// texture coords of row/column to calculate
+varying vec2      	UVs;			// texture coords of row/column to calculate
 
 uniform float		cols;			// number of columns
 uniform float		col_hstep;		// half step in texture space
@@ -26,8 +26,8 @@ void main( void ) {
 	// get the implied row and column from .y and .x of passed (output)
 	// texture coordinate. These map directly to input texture space when
 	// the relevant dimensions are the same.
-	float row_t = outTex.y;
-	float col_t = outTex.x;
+	float row_t = UVs.y;
+	float col_t = UVs.x;
 	
 	vec2 rowcol = get_indices( col_t, cols, row_t, rows );
 	
