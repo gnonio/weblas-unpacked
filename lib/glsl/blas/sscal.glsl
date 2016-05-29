@@ -2,7 +2,7 @@
 precision highp float;
 precision highp int;
 
-varying vec2      	outTex;			// texture coords of row/column to calculate
+varying vec2      	UVs;			// texture coords of row/column to calculate
 
 uniform float		alpha;			// scalar
 
@@ -16,7 +16,7 @@ uniform int			write_channel;	// channel to write data to
 
 void main( void ) {
 	
-	float x_value = get_channel_value( X, X_channel, outTex );
+	float x_value = get_channel_value( X, X_channel, UVs );
 
 	gl_FragColor = set_channel_value( write_channel, alpha * x_value );
 }

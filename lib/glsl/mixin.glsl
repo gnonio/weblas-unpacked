@@ -3,7 +3,7 @@ precision highp float;
 
 // Uniforms
 
-varying vec2		outTex;			// texture coords of row/column to calculate
+varying vec2		UVs;			// texture coords of row/column to calculate
 
 // uRED
 

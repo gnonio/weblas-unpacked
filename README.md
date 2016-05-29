@@ -132,12 +132,20 @@ console.log( 't2', t2.download( true ) )
 
 ## Notes:
 
+* three.js integration update:
+	- weblas webgl_addin class significantly refactored ( mirrors (TCompute)[https://github.com/gnonio/t-compute] functionality )
+		+ allows specification of an existing webgl context with which tensor textures can be shared
+		+ adds a webgl state wraper manager ( simplifies integration )
+		+ shader/program creation was externalized via addProgram() (allows easy plugin of new tensor functionality)
+		+ renderPass() method added to simplify setting up a render stage ( opening the way for multiple stage combinations )
+		+ vertex buffers reuse at "render" phase
+		+ in-shader attributes and varyings renamed for consistency ( to simplify future dynamic creation )
+		+ some methods unified
+	- unpacked tensor class reflects webgl manager changes
+	- gl texture deletion (hence its memory savings) provided by mixin() is temporarily disabled, until a robust integrated way is implemented
+	
+* three.js requires minor modifications to accomdate texture sharing ( keep an eye on this (three.js fork)[https://github.com/gnonio/three.js/tree/GpuTexture] )
+
 * GPU memory: we introduced a function mixin() which allows the user to specify combinations of Tensors, GPU memory is released as soon as a given Tensor finds allocation within a mixed Tensor ( and corresponding texture does not host other tensors ). Ultimately, remixing may leave a previous mixed Tensor referencing old data, in which case the option was to invalidate such tensors ( and weblas unpacked errors out ), always giving preference to newly created ones.
 
-Currently this appears efficient, but it is not fully tested, and it may turn out a more conservative solution is required. 
-
-* keep in mind we are working with floating point values, there are differences in the way javascript and webgl deal with these (order of ops?)
-
-* encoding float values is also prone to yield differences (hint: subnormals)
-
-* texture lookup occurs via normalized coordinates, calculating these without care may easily result in lookup errors
+Currently this appears efficient, but it is not fully tested, and it may turn out a more conservative solution is required.
